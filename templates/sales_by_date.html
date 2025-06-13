@@ -1,0 +1,39 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Dr.Ghalib_viber_7501783534 - تقرير المبيعات بالتاريخ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>تقرير المبيعات حسب التاريخ</h1>
+    <div style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+        <a href="{{ url_for('list_parts') }}">العودة إلى قائمة الأجزاء</a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>التاريخ</th>
+                <th>مجموع المبيعات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {# Iterate through the processed list of dictionaries #}
+            {% for item in sales_data %}
+            <tr>
+                {# Access the date object using the key 'sale_date' #}
+                {# item['sale_date'] should now be a date object or None #}
+                <td>{{ item['sale_date'].strftime('%Y-%m-%d') if item['sale_date'] else '-' }}</td>
+                {# Access the total using the key 'daily_total' #}
+                <td>{{ "%.2f"|format(item['daily_total']) if item['daily_total'] is not none else '0.00' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="2" style="text-align: center; padding: 20px;">لا توجد مبيعات مسجلة لعرض التقرير.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

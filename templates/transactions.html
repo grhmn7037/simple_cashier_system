@@ -1,0 +1,235 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Dr.Ghalib_viber_7501783534 - سجل المعاملات</title> {# Updated Title #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+     <style>
+        /* Add styles if needed, e.g., for delete button */
+        .delete-button { background-color: #d9534f; color: white; }
+        .delete-button:hover { background-color: #c9302c; }
+        /* Flash message styles */
+        .flash-messages { list-style: none; padding: 0; margin: 15px 0; }
+        .flash-messages li { padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid transparent; }
+        .flash-messages .success { background-color: #dff0d8; border-color: #d6e9c6; color: #3c763d; }
+        .flash-messages .error { background-color: #f2dede; border-color: #ebccd1; color: #a94442; }
+         .flash-messages .warning { background-color: #fcf8e3; border-color: #faebcc; color: #8a6d3b; }
+    </style>
+    {# --- Password Check Script (Keep if using client-side check) --- #}
+    <script>
+        function checkPasswordAndDelete() {
+            const enteredPassword = prompt("للمتابعة في عملية الحذف، الرجاء إدخال كلمة المرور:");
+            if (enteredPassword === null) { return false; } // User cancelled
+            // Replace '11' with the actual password or implement server-side check
+            if (enteredPassword === '11') {
+                return confirm('هل أنت متأكد أنك تريد حذف هذه المعاملة؟ سيتم محاولة تعديل كمية الجزء.');
+            } else {
+                alert('كلمة المرور غير صحيحة. لم يتم الحذف.');
+                return false;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>سجل المعاملات المالية</h1>
+     <div style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+        <a href="{{ url_for('list_parts') }}">العودة لقائمة الأجزاء</a> |
+        <a href="{{ url_for('list_customers') }}">عرض العملاء</a>
+     </div>
+
+    {# --- Display Flash Messages --- #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class=flash-messages>
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>التاريخ والوقت</th>
+                <th>نوع المعاملة</th>
+                <th>اسم الجزء</th>
+                <th>المبلغ</th>
+                <th>العميل (للبيع)</th> {# *** NEW/MODIFIED Column *** #}
+                <th></th> <!-- Column for the delete button -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                {# Format date for better readability #}
+                <td>{{ transaction.date.strftime('%Y-%m-%d %H:%M') if transaction.date else '-' }}</td>
+                <td>{{ transaction.transaction_type }}</td>
+                {# Safely access part name, handle if part was deleted #}
+                <td>{{ transaction.part.name if transaction.part else '(جزء محذوف)' }}</td>
+                <td>{{ "%.2f"|format(transaction.amount) if transaction.amount is not none else '0.00' }}</td>
+                {# *** Display Customer Name for Sales *** #}
+                <td>
+                    {% if transaction.transaction_type == 'بيع' %}
+                        {{ transaction.customer.name if transaction.customer else '(عميل غير محدد)' }}
+                    {% else %}
+                        - {# Not applicable for purchase #}
+                    {% endif %}
+                </td>
+                <td>
+                    {# Use the password check function #}
+                    <form method="POST" action="{{ url_for('delete_transaction', id=transaction.id) }}" onsubmit="return checkPasswordAndDelete();" style="display: inline;">
+                        <button type="submit" class="delete-button" title="حذف هذه المعاملة">حذف</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+             <tr>
+                <td colspan="6" style="text-align: center; padding: 20px;">لا توجد معاملات مسجلة حالياً.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>
+<!--<!DOCTYPE html>-->
+<!--<html lang="ar" dir="rtl">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Dr.Ghalib_viber_7501783534</title> {# Consider a more descriptive title like "سجل المعاملات المالية" #}-->
+<!--    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">-->
+<!--</head>-->
+<!--<body>-->
+<!--    <h1>سجل المعاملات المالية</h1>-->
+<!--    <a href="/parts">العودة إلى قائمة الأجزاء</a>-->
+<!--    <table>-->
+<!--        <thead>-->
+<!--            <tr>-->
+<!--                <th>التاريخ</th>-->
+<!--                <th>نوع المعاملة</th>-->
+<!--                <th>المبلغ</th>-->
+<!--                <th>اسم الجزء</th>-->
+<!--                <th></th> &lt;!&ndash; Column for the delete button &ndash;&gt;-->
+<!--            </tr>-->
+<!--        </thead>-->
+<!--        <tbody>-->
+<!--            {% for transaction in transactions %}-->
+<!--            <tr>-->
+<!--                <td>{{ transaction.date }}</td>-->
+<!--                <td>{{ transaction.transaction_type }}</td>-->
+<!--                <td>{{ transaction.amount }}</td>-->
+<!--                <td>{{ transaction.part.name }}</td>-->
+<!--                <td>-->
+<!--                    {# --- MODIFIED FORM --- #}-->
+<!--                    {# Call the JavaScript function on submit #}-->
+<!--                    <form method="POST" action="/transactions/delete/{{ transaction.id }}" onsubmit="return checkPasswordAndDelete();">-->
+<!--                        <button type="submit">حذف</button>-->
+<!--                    </form>-->
+<!--                    {# --- END MODIFIED FORM --- #}-->
+<!--                </td>-->
+<!--            </tr>-->
+<!--            {% endfor %}-->
+<!--        </tbody>-->
+<!--    </table>-->
+
+<!--    {# --- ADD JAVASCRIPT SCRIPT --- #}-->
+<!--    <script>-->
+<!--        function checkPasswordAndDelete() {-->
+<!--            // 1. Prompt for the password-->
+<!--            const enteredPassword = prompt("للمتابعة في عملية الحذف، الرجاء إدخال كلمة المرور:");-->
+
+<!--            // 2. Check if the user cancelled the prompt-->
+<!--            if (enteredPassword === null) {-->
+<!--                // User clicked Cancel or closed the prompt-->
+<!--                return false; // Prevent form submission-->
+<!--            }-->
+
+<!--            // 3. Check if the password is correct-->
+<!--            if (enteredPassword === '11') {-->
+<!--                // Password is correct, now show the confirmation dialog-->
+<!--                return confirm('هل أنت متأكد أنك تريد حذف هذه المعاملة؟'); // Submit form only if user clicks OK-->
+<!--            } else {-->
+<!--                // Password was incorrect-->
+<!--                alert('كلمة المرور غير صحيحة. لم يتم الحذف.');-->
+<!--                return false; // Prevent form submission-->
+<!--            }-->
+<!--        }-->
+<!--    </script>-->
+<!--    {# --- END JAVASCRIPT SCRIPT --- #}-->
+
+<!--</body>-->
+<!--</html>-->
+<!--&lt;!&ndash;<!DOCTYPE html>&ndash;&gt;-->
+<!--&lt;!&ndash;<html lang="ar" dir="rtl">&ndash;&gt;-->
+<!--&lt;!&ndash;<head>&ndash;&gt;-->
+<!--&lt;!&ndash;    <meta charset="UTF-8">&ndash;&gt;-->
+<!--&lt;!&ndash;    <title>Dr.Ghalib_viber_7501783534</title>&ndash;&gt;-->
+<!--&lt;!&ndash;    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">&ndash;&gt;-->
+<!--&lt;!&ndash;</head>&ndash;&gt;-->
+<!--&lt;!&ndash;<body>&ndash;&gt;-->
+<!--&lt;!&ndash;    <h1>سجل المعاملات المالية</h1>&ndash;&gt;-->
+<!--&lt;!&ndash;    <a href="/parts">العودة إلى قائمة الأجزاء</a>&ndash;&gt;-->
+<!--&lt;!&ndash;    <table>&ndash;&gt;-->
+<!--&lt;!&ndash;        <thead>&ndash;&gt;-->
+<!--&lt;!&ndash;            <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                <th>التاريخ</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                <th>نوع المعاملة</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                <th>المبلغ</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                <th>اسم الجزء</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                <th></th> &lt;!&ndash; New column for the delete button &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;            </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;        </thead>&ndash;&gt;-->
+<!--&lt;!&ndash;        <tbody>&ndash;&gt;-->
+<!--&lt;!&ndash;            {% for transaction in transactions %}&ndash;&gt;-->
+<!--&lt;!&ndash;            <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                <td>{{ transaction.date }}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                <td>{{ transaction.transaction_type }}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                <td>{{ transaction.amount }}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                <td>{{ transaction.part.name }}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <form method="POST" action="/transactions/delete/{{ transaction.id }}" onsubmit="return confirm('هل أنت متأكد أنك تريد حذف هذه المعاملة؟');">&ndash;&gt;-->
+<!--&lt;!&ndash;                        <button type="submit">حذف</button>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </form>&ndash;&gt;-->
+<!--&lt;!&ndash;                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;            </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;            {% endfor %}&ndash;&gt;-->
+<!--&lt;!&ndash;        </tbody>&ndash;&gt;-->
+<!--&lt;!&ndash;    </table>&ndash;&gt;-->
+
+<!--&lt;!&ndash;</body>&ndash;&gt;-->
+<!--&lt;!&ndash;</html>&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;<!DOCTYPE html>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;<html lang="ar" dir="rtl">&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;<head>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;    <meta charset="UTF-8">&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;    <title>سجل المعاملات المالية</title>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;</head>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;<body>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;    <h1>سجل المعاملات المالية</h1>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;    <a href="/parts">العودة إلى قائمة الأجزاء</a>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;    <table>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;        <thead>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;            <tr>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                <th>التاريخ</th>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                <th>نوع المعاملة</th>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                <th>المبلغ</th>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                <th>اسم الجزء</th>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;            </tr>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;        </thead>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;        <tbody>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;            {% for transaction in transactions %}&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;            <tr>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                <td>{{ transaction.date }}</td>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                <td>{{ transaction.transaction_type }}</td>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                <td>{{ transaction.amount }}</td>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;                <td>{{ transaction.part.name }}</td>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;            </tr>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;            {% endfor %}&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;        </tbody>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;    </table>&ndash;&gt;&ndash;&gt;-->
+
+<!--&lt;!&ndash;&lt;!&ndash;</body>&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;&lt;!&ndash;</html>&ndash;&gt;&ndash;&gt;-->

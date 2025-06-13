@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Dr.Ghalib_viber_7501783534 - قائمة الأجزاء</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* General table styles (assuming basic style.css) */
+        body { padding: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: right; vertical-align: middle; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        /* Styles for action items within table cells */
+        .operations { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+        .operations form, .operations a { display: inline-block; margin: 0; }
+        .operations input[type="number"] { width: 60px; padding: 4px; margin-left: 5px; text-align: center;}
+        .operations select { width: 150px; padding: 4px; margin-left: 5px;}
+        .operations button, .operations a { padding: 5px 10px; text-decoration: none; border-radius: 4px; cursor: pointer; font-size: 0.9em; border: 1px solid transparent; }
+        .operations button[type="submit"] { background-color: #5cb85c; color: white; border-color: #4cae4c;}
+        .operations button[type="submit"]:hover { background-color: #449d44; border-color: #398439;}
+        .operations button:disabled { background-color: #cccccc; cursor: not-allowed; border-color: #bbb;}
+        .operations a { background-color: #337ab7; color: white !important; border-color: #2e6da4; } /* Edit link */
+        .operations a:hover { background-color: #286090; border-color: #204d74; }
+        .delete-button { background-color: #d9534f; color: white; border-color: #d43f3a; } /* Delete button */
+        .delete-button:hover { background-color: #c9302c; border-color: #ac2925; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+         /* Search Form Styles */
+        .search-form { margin-bottom: 20px; padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+        .search-form label { font-weight: bold; margin-left: 5px;}
+        .search-form input[type="text"] { padding: 8px; border: 1px solid #ced4da; border-radius: 4px; flex-grow: 1; min-width: 200px; }
+        .search-form button { padding: 8px 15px; background-color: #0275d8; color: white; border: none; border-radius: 4px;}
+        .search-form a.button-cancel { padding: 8px 15px; background-color: #6c757d; color: white; border: none; border-radius: 4px; text-decoration: none; }
+        /* Flash message styles */
+        .flash-messages { list-style: none; padding: 0; margin: 15px 0; }
+        .flash-messages li { padding: 10px 15px; margin-bottom: 10px; border-radius: 4px; border: 1px solid transparent; }
+        .flash-messages .success { background-color: #dff0d8; border-color: #d6e9c6; color: #3c763d; }
+        .flash-messages .error { background-color: #f2dede; border-color: #ebccd1; color: #a94442; }
+        .flash-messages .warning { background-color: #fcf8e3; border-color: #faebcc; color: #8a6d3b; }
+        .flash-messages .info { background-color: #d9edf7; border-color: #bce8f1; color: #31708f; }
+
+        /* === ADDED: Style for Current Time === */
+        .current-time {
+            text-align: left; /* Position to the left */
+            margin-bottom: 10px;
+            font-size: 0.9em; /* Slightly smaller font */
+            color: #555;    /* Grey color */
+            padding: 5px;
+            background-color: #f8f9fa; /* Optional light background */
+            border: 1px solid #dee2e6; /* Optional border */
+            border-radius: 4px;
+            display: inline-block; /* Make it fit content width */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>قائمة الأجزاء</h1>
+
+    {# --- Navigation Links --- #}
+    <div style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+        <a href="{{ url_for('add_part') }}">إضافة جزء جديد</a> |
+        <a href="{{ url_for('list_transactions') }}">عرض سجل المعاملات</a> |
+        <a href="{{ url_for('list_customers') }}">إدارة العملاء</a> |
+        <a href="{{ url_for('sales_by_type') }}">تقرير المبيعات (النوع)</a> |
+        <a href="{{ url_for('sales_by_date') }}">تقرير المبيعات (التاريخ)</a>
+    </div>
+
+    {# --- Search Form --- #}
+    <form method="GET" action="{{ url_for('list_parts') }}" class="search-form">
+        <label for="search">بحث عن جزء:</label>
+        <input type="text" id="search" name="search" placeholder="أدخل اسم الجزء أو رقمه..."
+               value="{{ search_term | default('', true) }}">
+        <button type="submit">بحث</button>
+        {% if search_term %}
+            <a href="{{ url_for('list_parts') }}" class="button-cancel">إلغاء البحث</a>
+        {% endif %}
+    </form>
+
+    {# --- Display Flash Messages --- #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class=flash-messages>
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    {# --- Parts Table --- #}
+    <table>
+        <thead>
+            <tr>
+                <th>الاسم</th>
+                <th>رقم الجزء</th>
+                <th>اشترى من</th>
+                <th>الوصف</th>
+                <th>الكمية الحالية</th>
+                <th>سعر البيع</th>
+                <th>العمليات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for part in parts %}
+            <tr>
+                <td>{{ part.name }}</td>
+                <td>{{ part.part_number | default('-', true) }}</td>
+                <td>{{ part.description1 | default('-', true) }}</td> {# Source/Supplier #}
+                <td>{{ part.description | default('-', true) }}</td> {# Description #}
+                <td>{{ part.quantity }}</td>
+                <td>{{ "%.2f"|format(part.selling_price) if part.selling_price is not none else '0.00' }}</td>
+                <td>
+                    <div class="operations">
+                        {# Sell Form #}
+                        <form method="POST" action="{{ url_for('sell_part', id=part.id) }}" style="display: inline-flex; align-items: center;">
+                             <label for="quantity_{{ part.id }}" class="sr-only">كمية البيع لـ {{ part.name }}</label>
+                             <input type="number" id="quantity_{{ part.id }}" name="quantity" value="1" min="1" max="{{ part.quantity }}" required {% if part.quantity == 0 %}disabled{% endif %} title="كمية البيع">
+
+                             <label for="customer_{{ part.id }}" class="sr-only">اختر العميل لـ {{ part.name }}</label>
+                             <select name="customer_id" id="customer_{{ part.id }}" required {% if part.quantity == 0 %}disabled{% endif %} title="اختر العميل">
+                                 <option value="" disabled selected>-- اختر العميل --</option>
+                                 {% for customer in customers %}
+                                     <option value="{{ customer.id }}">{{ customer.name }}</option>
+                                 {% else %}
+                                     <option value="" disabled>لا يوجد عملاء لإضافتهم</option>
+                                 {% endfor %}
+                             </select>
+                             <button type="submit" {% if part.quantity == 0 or not customers %}disabled{% endif %} title="بيع الكمية المحددة للعميل المختار">بيع</button>
+                        </form>
+
+                        {# Edit Link #}
+                        <a href="{{ url_for('edit_part', id=part.id) }}" title="تعديل بيانات هذا الجزء">تعديل</a>
+
+                        {# Delete Form #}
+                        <form method="POST" action="{{ url_for('delete_part', id=part.id) }}" onsubmit="return confirm('تحذير! سيتم حذف هذا الجزء وجميع معاملاته (شراء وبيع). هل أنت متأكد؟');" style="display: inline;">
+                            <button type="submit" class="delete-button" title="حذف هذا الجزء بشكل دائم">حذف</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 20px;">
+                        {% if search_term %}
+                            لا توجد أجزاء تطابق البحث "{{ search_term }}". <a href="{{ url_for('list_parts') }}">عرض كل الأجزاء</a>.
+                        {% else %}
+                            لا توجد أجزاء مسجلة حالياً. <a href="{{ url_for('add_part') }}">أضف جزءاً جديداً</a>.
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+            {# === ADDED: Display Current Local Time === #}
+    {% if current_time %}
+    <div class="current-time">
+        الوقت الحالي (السيرفر): {{ current_time.strftime('%Y-%m-%d %H:%M:%S') }}
+    </div>
+    {% endif %}
+    {# === End Current Time Display === #}
+    </table>
+</body>
+</html>
+<!--<!DOCTYPE html>-->
+<!--<html lang="ar" dir="rtl">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Dr.Ghalib_viber_7501783534 - قائمة الأجزاء</title> {# Updated Title #}-->
+<!--    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">-->
+<!--    <style>-->
+<!--        /* Keep existing styles */-->
+<!--        .operations {-->
+<!--            display: flex;-->
+<!--            align-items: center;-->
+<!--            gap: 5px; /* Add space between form elements */-->
+<!--        }-->
+<!--        .operations input[type="number"] { width: 60px; padding: 4px; }-->
+<!--        .operations button { margin-left: 5px; padding: 5px 10px;}-->
+<!--        .operations a { padding: 5px 10px; margin-left: 5px;} /* Style edit link */-->
+<!--        /* Style for customer select */-->
+<!--        .operations select {-->
+<!--            width: 140px; /* Adjust width as needed */-->
+<!--            padding: 4px;-->
+<!--            margin-left: 5px;-->
+<!--            border: 1px solid #ccc;-->
+<!--            border-radius: 4px;-->
+<!--            background-color: white;-->
+<!--        }-->
+<!--        .delete-button { background-color: #d9534f; color: white; } /* Style delete button */-->
+<!--        .delete-button:hover { background-color: #c9302c; }-->
+
+<!--        /* Flash message styles */-->
+<!--        .flash-messages { list-style: none; padding: 0; margin: 15px 0; }-->
+<!--        .flash-messages li { padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid transparent; }-->
+<!--        .flash-messages .success { background-color: #dff0d8; border-color: #d6e9c6; color: #3c763d; }-->
+<!--        .flash-messages .error { background-color: #f2dede; border-color: #ebccd1; color: #a94442; }-->
+<!--        .flash-messages .warning { background-color: #fcf8e3; border-color: #faebcc; color: #8a6d3b; }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--    <h1>قائمة الأجزاء</h1>-->
+
+<!--    {# -&#45;&#45; Navigation Links -&#45;&#45; #}-->
+<!--    <div style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">-->
+<!--        <a href="{{ url_for('add_part') }}">إضافة جزء جديد</a> |-->
+<!--        <a href="{{ url_for('list_transactions') }}">عرض سجل المعاملات</a> |-->
+<!--        <a href="{{ url_for('list_customers') }}">عرض العملاء</a> | {# Link to new customer list #}-->
+<!--        <a href="{{ url_for('sales_by_type') }}">تقرير المبيعات (النوع)</a> |-->
+<!--        <a href="{{ url_for('sales_by_date') }}">تقرير المبيعات (التاريخ)</a>-->
+<!--    </div>-->
+
+<!--    {# -&#45;&#45; Display Flash Messages -&#45;&#45; #}-->
+<!--    {% with messages = get_flashed_messages(with_categories=true) %}-->
+<!--      {% if messages %}-->
+<!--        <ul class=flash-messages>-->
+<!--        {% for category, message in messages %}-->
+<!--          <li class="{{ category }}">{{ message }}</li>-->
+<!--        {% endfor %}-->
+<!--        </ul>-->
+<!--      {% endif %}-->
+<!--    {% endwith %}-->
+
+<!--    &lt;!&ndash; Search Form &ndash;&gt;-->
+<!--    <form class="search-form" method="GET" action="{{ url_for('list_parts') }}"> {# Point action to route #}-->
+<!--        <input type="text" name="search" placeholder="ابحث بالاسم أو رقم الجزء" value="{{ request.args.get('search', '') }}">-->
+<!--        <button type="submit">بحث</button>-->
+<!--        {# Add a clear search button if a search is active #}-->
+<!--        {% if request.args.get('search') %}-->
+<!--            <a href="{{ url_for('list_parts') }}" style="background-color: #f0ad4e; margin-right: 5px;">مسح البحث</a>-->
+<!--        {% endif %}-->
+<!--    </form>-->
+
+<!--    <table>-->
+<!--        <thead>-->
+<!--            <tr>-->
+<!--                 {# Reordered Columns for better readability #}-->
+<!--                <th>الاسم</th>-->
+<!--                <th>رقم الجزء</th>-->
+<!--                <th>اشترى من</th> {# description1 #}-->
+<!--                <th>الوصف</th>    {# description #}-->
+<!--                <th>الكمية الحالية</th>-->
+<!--                <th>سعر البيع</th>-->
+<!--                <th>العمليات</th>-->
+<!--            </tr>-->
+<!--        </thead>-->
+<!--        <tbody>-->
+<!--            {% for part in parts %}-->
+<!--            <tr>-->
+<!--                <td>{{ part.name }}</td>-->
+<!--                <td>{{ part.part_number | default('-', true) }}</td>-->
+<!--                <td>{{ part.description1 | default('-', true) }}</td>-->
+<!--                <td>{{ part.description | default('-', true) }}</td>-->
+<!--                <td>{{ part.quantity }}</td>-->
+<!--                <td>{{ "%.2f"|format(part.selling_price) if part.selling_price is not none else '0.00' }}</td> {# Format price #}-->
+<!--                <td>-->
+<!--                    <div class="operations">-->
+<!--                        {# -&#45;&#45; Sell Form -&#45;&#45; #}-->
+<!--                        <form method="POST" action="{{ url_for('sell_part', id=part.id) }}" style="display: inline-flex; align-items: center;">-->
+<!--                             <label for="quantity_{{ part.id }}" class="sr-only">كمية البيع</label> {# Hidden label for accessibility #}-->
+<!--                             <input type="number" id="quantity_{{ part.id }}" name="quantity" value="1" min="1" max="{{ part.quantity }}" required {% if part.quantity == 0 %}disabled{% endif %} title="كمية البيع">-->
+
+<!--                             {# *** Customer Select Dropdown *** #}-->
+<!--                             <label for="customer_{{ part.id }}" class="sr-only">اختر العميل</label> {# Hidden label #}-->
+<!--                             <select name="customer_id" id="customer_{{ part.id }}" required {% if part.quantity == 0 %}disabled{% endif %} title="اختر العميل">-->
+<!--                                 <option value="" disabled selected>&#45;&#45; اختر العميل &#45;&#45;</option>-->
+<!--                                 {% for customer in customers %}-->
+<!--                                     <option value="{{ customer.id }}">{{ customer.name }}</option>-->
+<!--                                 {% else %}-->
+<!--                                     <option value="" disabled>لا يوجد عملاء</option>-->
+<!--                                 {% endfor %}-->
+<!--                             </select>-->
+
+<!--                             <button type="submit" {% if part.quantity == 0 %}disabled{% endif %} title="بيع الكمية المحددة للعميل المختار">بيع</button>-->
+<!--                        </form>-->
+
+<!--                        {# -&#45;&#45; Edit Link -&#45;&#45; #}-->
+<!--                        <a href="{{ url_for('edit_part', id=part.id) }}" title="تعديل بيانات هذا الجزء">تعديل</a>-->
+
+<!--                        {# -&#45;&#45; Delete Form -&#45;&#45; #}-->
+<!--                        <form method="POST" action="{{ url_for('delete_part', id=part.id) }}" onsubmit="return confirm('تحذير! سيتم حذف هذا الجزء وجميع معاملاته (شراء وبيع). هل أنت متأكد؟');" style="display: inline;">-->
+<!--                            {# Add password check here via JS if needed, but server-side is safer #}-->
+<!--                            <button type="submit" class="delete-button" title="حذف هذا الجزء بشكل دائم">حذف</button>-->
+<!--                        </form>-->
+<!--                    </div>-->
+<!--                </td>-->
+<!--            </tr>-->
+<!--            {% else %}-->
+<!--                <tr>-->
+<!--                    <td colspan="7" style="text-align: center; padding: 20px;">لا توجد أجزاء تطابق البحث أو لم يتم إضافة أجزاء بعد.</td>-->
+<!--                </tr>-->
+<!--            {% endfor %}-->
+<!--        </tbody>-->
+<!--    </table>-->
+<!--</body>-->
+<!--</html>-->
+<!--&lt;!&ndash;<!DOCTYPE html>&ndash;&gt;-->
+<!--&lt;!&ndash;<html lang="ar" dir="rtl">&ndash;&gt;-->
+<!--&lt;!&ndash;<head>&ndash;&gt;-->
+<!--&lt;!&ndash;    <meta charset="UTF-8">&ndash;&gt;-->
+<!--&lt;!&ndash;    <title>Dr.Ghalib_viber_7501783534</title>&ndash;&gt;-->
+<!--&lt;!&ndash;    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">&ndash;&gt;-->
+<!--&lt;!&ndash;    <style>&ndash;&gt;-->
+<!--&lt;!&ndash;        .operations {&ndash;&gt;-->
+<!--&lt;!&ndash;            display: flex;&ndash;&gt;-->
+<!--&lt;!&ndash;            align-items: center;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        .operations input[type="number"] {&ndash;&gt;-->
+<!--&lt;!&ndash;            width: 50px;&ndash;&gt;-->
+<!--&lt;!&ndash;            margin-left: 5px;&ndash;&gt;-->
+<!--&lt;!&ndash;            margin-right: 5px;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        .operations button {&ndash;&gt;-->
+<!--&lt;!&ndash;            margin-left: 5px;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        /* إضافة نمط لنموذج البحث */&ndash;&gt;-->
+<!--&lt;!&ndash;        .search-form {&ndash;&gt;-->
+<!--&lt;!&ndash;            margin-bottom: 20px;&ndash;&gt;-->
+<!--&lt;!&ndash;            text-align: center;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        .search-form input[type="text"] {&ndash;&gt;-->
+<!--&lt;!&ndash;            width: 300px;&ndash;&gt;-->
+<!--&lt;!&ndash;            padding: 8px;&ndash;&gt;-->
+<!--&lt;!&ndash;            border: 1px solid #ddd;&ndash;&gt;-->
+<!--&lt;!&ndash;            border-radius: 5px;&ndash;&gt;-->
+<!--&lt;!&ndash;            direction: ltr; /* اتجاه النص من اليسار إلى اليمين داخل حقل البحث */&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+
+<!--&lt;!&ndash;        .search-form button {&ndash;&gt;-->
+<!--&lt;!&ndash;            padding: 8px 12px;&ndash;&gt;-->
+<!--&lt;!&ndash;            background-color: #007bff;&ndash;&gt;-->
+<!--&lt;!&ndash;            color: #fff;&ndash;&gt;-->
+<!--&lt;!&ndash;            border: none;&ndash;&gt;-->
+<!--&lt;!&ndash;            border-radius: 5px;&ndash;&gt;-->
+<!--&lt;!&ndash;            cursor: pointer;&ndash;&gt;-->
+<!--&lt;!&ndash;        }&ndash;&gt;-->
+<!--&lt;!&ndash;    </style>&ndash;&gt;-->
+<!--&lt;!&ndash;</head>&ndash;&gt;-->
+<!--&lt;!&ndash;<body>&ndash;&gt;-->
+<!--&lt;!&ndash;    <h1>قائمة الأجزاء</h1>&ndash;&gt;-->
+<!--&lt;!&ndash;    <a href="/parts/add">إضافة جزء جديد</a>&ndash;&gt;-->
+<!--&lt;!&ndash;    <a href="/transactions">عرض سجل المعاملات المالية</a>&ndash;&gt;-->
+<!--&lt;!&ndash;    <a href="/reports/sales_by_type">تقرير المبيعات حسب النوع</a>&ndash;&gt;-->
+<!--&lt;!&ndash;    <a href="/reports/sales_by_date">تقرير المبيعات حسب التاريخ</a>&ndash;&gt;-->
+
+<!--&lt;!&ndash;    &lt;!&ndash; نموذج البحث &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;    <form class="search-form" method="GET">&ndash;&gt;-->
+<!--&lt;!&ndash;        <input type="text" name="search" placeholder="ابحث عن طريق الاسم أو رقم الجزء">&ndash;&gt;-->
+<!--&lt;!&ndash;        <button type="submit">بحث</button>&ndash;&gt;-->
+<!--&lt;!&ndash;    </form>&ndash;&gt;-->
+
+<!--&lt;!&ndash;    <table>&ndash;&gt;-->
+<!--&lt;!&ndash;        <thead>&ndash;&gt;-->
+<!--&lt;!&ndash;            <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                <th>سعر البيع</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                <th>الكمية الكلية</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                <th>رقم الجزء</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                <th>الوصف</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                <th>اشترى من</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                <th>الاسم</th>&ndash;&gt;-->
+<!--&lt;!&ndash;                <th></th>  &lt;!&ndash; رأس عمود جديد للعمليات &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;            </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;        </thead>&ndash;&gt;-->
+<!--&lt;!&ndash;        <tbody>&ndash;&gt;-->
+<!--&lt;!&ndash;            {% for part in parts %}&ndash;&gt;-->
+<!--&lt;!&ndash;            <tr>&ndash;&gt;-->
+<!--&lt;!&ndash;                <td>{{ part.selling_price }}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                <td>{{ part.quantity }}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                <td>{{ part.part_number }}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                <td>{{ part.description }}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                <td>{{ part.description1 }}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                <td>{{ part.name }}</td>&ndash;&gt;-->
+<!--&lt;!&ndash;                <td>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <div class="operations">&ndash;&gt;-->
+<!--&lt;!&ndash;                        <form method="POST" action="/parts/sell/{{ part.id }}">&ndash;&gt;-->
+<!--&lt;!&ndash;                            <input type="number" name="quantity" value="1" min="1" max="{{ part.quantity }}">&ndash;&gt;-->
+<!--&lt;!&ndash;                            <button type="submit">بيع</button>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </form>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <form method="POST" action="/parts/delete/{{ part.id }}" onsubmit="return confirm('هل أنت متأكد أنك تريد حذف هذا الجزء؟');">&ndash;&gt;-->
+<!--&lt;!&ndash;                            <button type="submit">حذف</button>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </form>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <a href="/parts/edit/{{ part.id }}">تعديل</a> &lt;!&ndash; رابط التعديل &ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;                    </div>&ndash;&gt;-->
+<!--&lt;!&ndash;                </td>&ndash;&gt;-->
+<!--&lt;!&ndash;            </tr>&ndash;&gt;-->
+<!--&lt;!&ndash;            {% endfor %}&ndash;&gt;-->
+<!--&lt;!&ndash;        </tbody>&ndash;&gt;-->
+<!--&lt;!&ndash;    </table>&ndash;&gt;-->
+<!--&lt;!&ndash;</body>&ndash;&gt;-->
+<!--&lt;!&ndash;</html>&ndash;&gt;-->

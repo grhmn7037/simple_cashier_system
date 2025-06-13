@@ -1,0 +1,106 @@
+body {
+    font-family: Arial, sans-serif;
+    direction: rtl;
+    margin: 10px;
+    background-color: #f8f8ff; /* Light background for better contrast */
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.7em; /* Slightly larger for emphasis */
+    color: #337ab7; /* Primary color for headings */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for table */
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 7px; /* Adjusted padding */
+    text-align: right;
+}
+
+th {
+    background-color: #e6f7ff; /* Lighter, more vibrant background for th */
+    font-weight: bold;
+    color: #333; /* Darker text for contrast */
+}
+
+a {
+    display: inline-block;
+    padding: 8px 12px;
+    background-color: #5bc0de; /* Teal-ish blue */
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Subtle shadow for links */
+    transition: background-color 0.3s ease; /* Smooth transition for hover */
+}
+
+a:hover {
+    background-color: #46b8da;
+}
+
+form {
+    margin-bottom: 10px;
+    padding: 15px; /* Increased padding for better spacing */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff; /* White background for form */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+}
+
+label {
+    display: block;
+    margin-bottom: 3px;
+    text-align: right;
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #555; /* Darker label color */
+}
+
+input[type="text"],
+input[type="number"],
+textarea {
+    width: 100%;
+    padding: 8px; /* Adjusted padding */
+    margin-bottom: 7px; /* Adjusted margin */
+    border: 1px solid #ccc; /* Slightly darker border */
+    border-radius: 5px;
+    box-sizing: border-box;
+    direction: rtl;
+    font-size: 0.9em;
+    background-color: #fdfdfd; /* Slightly off-white background */
+}
+
+button {
+    background-color: #5cb85c;
+    color: #fff;
+    padding: 10px 16px; /* Adjusted padding */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease; /* Smooth transition for hover */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Subtle shadow for button */
+}
+
+button:hover {
+    background-color: #449d44;
+}
+
+.error-message {
+    color: #d9534f; /* A more vibrant red */
+    font-weight: bold;
+    margin-top: 5px;
+    font-size: 0.9em;
+}

@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تعديل بيانات العميل</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+     <style>
+        /* Optional: Add specific styles */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="tel"], textarea {
+             width: 95%; /* More responsive width */
+            max-width: 400px; /* Max width */
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .button-group button, .button-group a { margin-left: 10px;}
+        /* Flash message styles - same as add_customer */
+        .flash-messages { list-style: none; padding: 0; margin: 15px 0; }
+        .flash-messages li { padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid transparent; }
+        .flash-messages .success { background-color: #dff0d8; border-color: #d6e9c6; color: #3c763d; }
+        .flash-messages .error { background-color: #f2dede; border-color: #ebccd1; color: #a94442; }
+        .flash-messages .warning { background-color: #fcf8e3; border-color: #faebcc; color: #8a6d3b; }
+    </style>
+</head>
+<body>
+    <h1>تعديل بيانات العميل: {{ customer.name }}</h1>
+
+    {# --- Display Flash Messages --- #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class=flash-messages>
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('edit_customer', id=customer.id) }}">
+         <div class="form-group">
+            <label for="name">اسم العميل:</label>
+            {# Use value from customer object on GET, or form value if validation failed #}
+            <input type="text" id="name" name="name" value="{{ request.form.name if request.form else customer.name }}" required>
+        </div>
+         {# Uncomment these if you add phone/address fields #}
+        {#
+        <div class="form-group">
+            <label for="phone">رقم الهاتف:</label>
+            <input type="tel" id="phone" name="phone" value="{{ request.form.phone if request.form else customer.phone | default('', true) }}">
+        </div>
+        <div class="form-group">
+            <label for="address">العنوان:</label>
+            <textarea id="address" name="address" rows="3">{{ request.form.address if request.form else customer.address | default('', true) }}</textarea>
+        </div>
+         #}
+        <div class="button-group">
+            <button type="submit">حفظ التعديلات</button>
+             <a href="{{ url_for('list_customers') }}" class="button-cancel">إلغاء</a>
+        </div>
+    </form>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إدارة العملاء</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+     <style>
+        .action-links a, .action-links button, .action-links form {
+            margin-left: 8px; text-decoration: none; display: inline-block; vertical-align: middle;
+        }
+        .action-links form { margin-bottom: 0; padding: 0; border: none; box-shadow: none; background: none;}
+        .delete-button { background-color: #d9534f; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.9em;}
+        .delete-button:hover { background-color: #c9302c; }
+        .prepare-button { background-color: #5bc0de; color: white !important; padding: 5px 10px; border-radius: 4px; font-size: 0.9em; text-decoration:none;} /* Style for Prepare button */
+        .prepare-button:hover { background-color: #46b8da; text-decoration:none; }
+        .flash-messages { list-style: none; padding: 0; margin: 15px 0; }
+        .flash-messages li { padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid transparent; }
+        .flash-messages .success { background-color: #dff0d8; border-color: #d6e9c6; color: #3c763d; }
+        .flash-messages .error { background-color: #f2dede; border-color: #ebccd1; color: #a94442; }
+        .flash-messages .warning { background-color: #fcf8e3; border-color: #faebcc; color: #8a6d3b; }
+    </style>
+</head>
+<body>
+    <h1>إدارة العملاء</h1>
+    <div style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+         <a href="{{ url_for('list_parts') }}">العودة لقائمة الأجزاء</a> |
+         <a href="{{ url_for('add_customer') }}">إضافة عميل جديد</a>
+    </div>
+
+     {# --- Display Flash Messages --- #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class=flash-messages>
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>اسم العميل</th>
+                <th>إجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>{{ customer.name }}</td>
+                <td class="action-links">
+                    <a href="{{ url_for('customer_sales_report', id=customer.id) }}" title="عرض سجل المبيعات التاريخي">عرض السجل</a>
+                    {# --- Link to Prepare List Page --- #}
+                    <a href="{{ url_for('prepare_customer_list', customer_id=customer.id) }}" class="prepare-button" title="تحضير قائمة/فاتورة لهذا العميل">تحضير قائمة</a>
+                    <a href="{{ url_for('edit_customer', id=customer.id) }}" title="تعديل بيانات هذا العميل">تعديل</a>
+                    <form method="POST" action="{{ url_for('delete_customer', id=customer.id) }}" onsubmit="return confirm('هل أنت متأكد أنك تريد حذف العميل \'{{ customer.name }}\'؟ لا يمكن الحذف إذا كان مرتبطاً بمعاملات بيع.');">
+                        <button type="submit" class="delete-button" title="حذف هذا العميل">حذف</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="2" style="text-align: center; padding: 20px;">لا يوجد عملاء مسجلون حالياً.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

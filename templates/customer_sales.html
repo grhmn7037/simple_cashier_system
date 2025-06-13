@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>قائمة مبيعات العميل - {{ customer.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        #sales-report { border: 1px solid #eee; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; }
+        #sales-report h1, #sales-report h2 { margin-top: 0; }
+        /* Print Styles */
+        @media print {
+            body * { visibility: hidden; }
+            #sales-report, #sales-report * { visibility: visible; }
+            #sales-report { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 10mm; border: none; font-size: 10pt; background-color: white !important; }
+            .no-print { display: none !important; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ccc; padding: 4px; text-align: right; background-color: white !important; color: black !important; }
+            h1, h2 { font-size: 14pt; }
+        }
+    </style>
+</head>
+<body>
+
+    {# --- Main Report Content --- #}
+    <div id="sales-report">
+        <h1>قائمة المبيعات</h1>
+        <h2>للعميل: {{ customer.name }}</h2>
+        {# Add phone/address here if you add them to the Customer model later #}
+        {# {% if customer.phone %}<p>الهاتف: {{ customer.phone }}</p>{% endif %} #}
+        {# {% if customer.address %}<p>العنوان: {{ customer.address }}</p>{% endif %} #}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>تاريخ البيع</th>
+                    <th>اسم الجزء</th>
+                    <th>رقم الجزء</th>
+                    <th>المبلغ</th> {# Based on original Transaction.amount #}
+                    {# If you modify Transaction later to store quantity/unit_price, add columns here #}
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales_list %}
+                <tr>
+                    <td>{{ sale.date.strftime('%Y-%m-%d %H:%M') if sale.date else '-' }}</td>
+                    <td>{{ sale.part.name if sale.part else '(جزء محذوف)' }}</td>
+                    <td>{{ sale.part.part_number if sale.part else '-' }}</td>
+                    <td>{{ "%.2f"|format(sale.amount) if sale.amount is not none else '0.00' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 20px;">لا توجد سجلات مبيعات لهذا العميل.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% if sales_list %}
+            <tfoot>
+                <tr>
+                    <td colspan="3" style="text-align: left; font-weight: bold;">الإجمالي الكلي للمبيعات:</td>
+                    <td style="font-weight: bold;">{{ "%.2f"|format(grand_total) }}</td>
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+    </div>
+
+    {# --- Buttons (Hidden on Print) --- #}
+    <div class="no-print" style="margin-top: 20px; text-align: center; padding-top: 10px; border-top: 1px solid #eee;">
+        <button onclick="window.print();">طباعة القائمة</button>
+        <a href="{{ url_for('list_customers') }}" style="margin-right: 15px;">العودة لقائمة العملاء</a>
+    </div>
+
+</body>
+</html>

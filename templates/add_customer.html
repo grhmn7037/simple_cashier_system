@@ -1,0 +1,157 @@
+
+<!--<!DOCTYPE html>-->
+<!--<html lang="ar" dir="rtl">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>إدارة العملاء</title>-->
+<!--    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">-->
+<!--     <style>-->
+<!--        /* General table styles */-->
+<!--        table { width: 100%; border-collapse: collapse; margin-top: 15px; }-->
+<!--        th, td { border: 1px solid #ddd; padding: 8px; text-align: right; vertical-align: middle; }-->
+<!--        th { background-color: #f2f2f2; font-weight: bold; }-->
+<!--        tr:nth-child(even) { background-color: #f9f9f9; }-->
+<!--        /* Action links/buttons */-->
+<!--        .action-links a, .action-links button, .action-links form {-->
+<!--            margin-left: 8px;-->
+<!--            text-decoration: none;-->
+<!--            display: inline-block;-->
+<!--            vertical-align: middle;-->
+<!--            padding: 5px 10px;-->
+<!--            border-radius: 4px;-->
+<!--            font-size: 0.9em;-->
+<!--            color: white !important; /* Ensure text is white */-->
+<!--             border: none; /* Remove default border */-->
+<!--        }-->
+<!--        .action-links form { margin-bottom: 0; padding: 0; border: none; box-shadow: none; background: none; display: inline-block;}-->
+<!--        .report-link { background-color: #5bc0de; } /* Blue for report */-->
+<!--        .report-link:hover { background-color: #46b8da; }-->
+<!--        .prepare-button { background-color: #f0ad4e; } /* Orange for prepare list */-->
+<!--        .prepare-button:hover { background-color: #ec971f; }-->
+<!--        .edit-link { background-color: #337ab7; } /* Standard blue for edit */-->
+<!--        .edit-link:hover { background-color: #286090; }-->
+<!--        .delete-button { background-color: #d9534f; color: white; cursor: pointer; } /* Red for delete */-->
+<!--        .delete-button:hover { background-color: #c9302c; }-->
+<!--        /* Flash message styles */-->
+<!--        .flash-messages { list-style: none; padding: 0; margin: 15px 0; }-->
+<!--        .flash-messages li { padding: 10px 15px; margin-bottom: 10px; border-radius: 4px; border: 1px solid transparent; }-->
+<!--        .flash-messages .success { background-color: #dff0d8; border-color: #d6e9c6; color: #3c763d; }-->
+<!--        .flash-messages .error { background-color: #f2dede; border-color: #ebccd1; color: #a94442; }-->
+<!--        .flash-messages .warning { background-color: #fcf8e3; border-color: #faebcc; color: #8a6d3b; }-->
+<!--        .flash-messages .info { background-color: #d9edf7; border-color: #bce8f1; color: #31708f; }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--    <h1>إدارة العملاء</h1>-->
+<!--    <div style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">-->
+<!--         <a href="{{ url_for('list_parts') }}">العودة لقائمة الأجزاء</a> |-->
+<!--         <a href="{{ url_for('add_customer') }}">إضافة عميل جديد</a>-->
+<!--    </div>-->
+
+<!--     {# -&#45;&#45; Display Flash Messages -&#45;&#45; #}-->
+<!--    {% with messages = get_flashed_messages(with_categories=true) %}-->
+<!--      {% if messages %}-->
+<!--        <ul class=flash-messages>-->
+<!--        {% for category, message in messages %}-->
+<!--          <li class="{{ category }}">{{ message }}</li>-->
+<!--        {% endfor %}-->
+<!--        </ul>-->
+<!--      {% endif %}-->
+<!--    {% endwith %}-->
+
+<!--    <table>-->
+<!--        <thead>-->
+<!--            <tr>-->
+<!--                <th>اسم العميل</th>-->
+<!--                <th>إجراءات</th>-->
+<!--            </tr>-->
+<!--        </thead>-->
+<!--        <tbody>-->
+<!--            {% for customer in customers %}-->
+<!--            <tr>-->
+<!--                <td>{{ customer.name }}</td>-->
+<!--                <td class="action-links">-->
+<!--                    <a href="{{ url_for('customer_sales_report', id=customer.id) }}" class="report-link" title="عرض سجل المبيعات التاريخي">عرض السجل</a>-->
+<!--                    <a href="{{ url_for('prepare_customer_list', customer_id=customer.id) }}" class="prepare-button" title="تحضير قائمة/فاتورة لهذا العميل">تحضير قائمة</a>-->
+<!--                    <a href="{{ url_for('edit_customer', id=customer.id) }}" class="edit-link" title="تعديل بيانات هذا العميل">تعديل</a>-->
+<!--                    <form method="POST" action="{{ url_for('delete_customer', id=customer.id) }}" onsubmit="return confirm('هل أنت متأكد أنك تريد حذف العميل \'{{ customer.name }}\'؟ لا يمكن الحذف إذا كان مرتبطاً بمعاملات بيع.');">-->
+<!--                        <button type="submit" class="delete-button" title="حذف هذا العميل">حذف</button>-->
+<!--                    </form>-->
+<!--                </td>-->
+<!--            </tr>-->
+<!--            {% else %}-->
+<!--            <tr>-->
+<!--                <td colspan="2" style="text-align: center; padding: 20px;">لا يوجد عملاء مسجلون حالياً. <a href="{{ url_for('add_customer') }}">أضف عميلاً جديداً</a>.</td>-->
+<!--            </tr>-->
+<!--            {% endfor %}-->
+<!--        </tbody>-->
+<!--    </table>-->
+
+<!--</body>-->
+<!--</html>-->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إضافة عميل جديد</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Optional: Add specific styles */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="tel"], textarea {
+            width: 95%; /* More responsive width */
+            max-width: 400px; /* Max width */
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .button-group button, .button-group a { margin-left: 10px;}
+        /* Flash message styles */
+        .flash-messages { list-style: none; padding: 0; margin: 15px 0; }
+        .flash-messages li { padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid transparent; }
+        .flash-messages .success { background-color: #dff0d8; border-color: #d6e9c6; color: #3c763d; }
+        .flash-messages .error { background-color: #f2dede; border-color: #ebccd1; color: #a94442; }
+        .flash-messages .warning { background-color: #fcf8e3; border-color: #faebcc; color: #8a6d3b; }
+    </style>
+</head>
+<body>
+    <h1>إضافة عميل جديد</h1>
+
+     {# --- Display Flash Messages --- #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class=flash-messages>
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    {# Using GET for cancel link is fine #}
+    <form method="POST" action="{{ url_for('add_customer') }}">
+        <div class="form-group">
+            <label for="name">اسم العميل:</label>
+            {# Add previous value if validation failed #}
+            <input type="text" id="name" name="name" value="{{ request.form.name if request.form else '' }}" required>
+        </div>
+        {# Uncomment these if you add phone/address fields #}
+        {#
+        <div class="form-group">
+            <label for="phone">رقم الهاتف:</label>
+            <input type="tel" id="phone" name="phone" value="{{ request.form.phone if request.form else '' }}">
+        </div>
+        <div class="form-group">
+            <label for="address">العنوان:</label>
+            <textarea id="address" name="address" rows="3">{{ request.form.address if request.form else '' }}</textarea>
+        </div>
+        #}
+        <div class="button-group">
+            <button type="submit">إضافة العميل</button>
+            <a href="{{ url_for('list_customers') }}" class="button-cancel">إلغاء</a> {# Style as needed #}
+        </div>
+    </form>
+
+</body>
+</html>

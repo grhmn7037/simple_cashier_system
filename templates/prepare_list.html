@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تحضير قائمة للعميل - {{ customer.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+<body>
+
+    <div class="no-print"> {# --- Wrapper to hide controls on print --- #}
+        <h1>تحضير قائمة للعميل: {{ customer.name }}</h1>
+        <div style="margin-bottom: 20px;">
+            <a href="{{ url_for('list_customers') }}">العودة لقائمة العملاء</a> |
+            <a href="{{ url_for('list_parts') }}">العودة لقائمة الأجزاء</a>
+        </div>
+
+        {# --- Display Flash Messages --- #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class=flash-messages>
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+
+        <div class="container">
+            {# --- Form to Add Items --- #}
+            <div class="add-item-form">
+                <h2>إضافة جزء للقائمة</h2>
+                <form method="POST" action="{{ url_for('prepare_customer_list', customer_id=customer.id) }}">
+                    <div class="form-group">
+                        <label for="part_id">اختر الجزء:</label>
+                        <select id="part_id" name="part_id" required>
+                            <option value="" disabled selected>-- الأجزاء المتوفرة --</option>
+                            {% for part in parts %}
+                                {# Display relevant part info in the option text #}
+                                <option value="{{ part.id }}">{{ part.name }} ({{part.part_number or '-'}}) - المتوفر: {{ part.quantity }} - السعر: {{ "%.2f"|format(part.selling_price) }}</option>
+                            {% else %}
+                                <option value="" disabled>لا توجد أجزاء متوفرة</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">الكمية المطلوبة:</label>
+                        <input type="number" id="quantity" name="quantity" value="1" min="1" required>
+                    </div>
+                    <button type="submit">إضافة للقائمة</button>
+                </form>
+            </div>
+
+            {# --- Display Current List Items --- #}
+            <div class="current-list">
+                 <h2>القائمة الحالية</h2>
+                 {# This inner div is what will be printed #}
+                 <div class="printable-area">
+                     {# Add customer name and date to print header (initially hidden) #}
+                     <h2 class="print-header">قائمة للعميل: {{ customer.name }}</h2>
+                     {# Use the current_time variable passed from the route #}
+                     <p class="print-header" style="font-size: 9pt;">تاريخ الطباعة: {{ current_time.strftime('%Y-%m-%d %H:%M') if current_time else 'N/A' }}</p>
+
+                     {% if current_list %}
+                     <table>
+                         <thead>
+                             <tr>
+                                 <th>#</th>
+                                 <th>اسم الجزء</th>
+                                 <th>رقم الجزء</th>
+                                 <th>الكمية</th>
+                                 <th>سعر الوحدة</th>
+                                 <th>المبلغ الإجمالي</th>
+                                 <th class="no-print"></th> {# Column for potential remove button #}
+                             </tr>
+                         </thead>
+                         <tbody>
+                             {% for item in current_list %}
+                             <tr>
+                                 <td>{{ loop.index }}</td>
+                                 <td>{{ item.name }}</td>
+                                 <td>{{ item.part_number | default('-', true)}}</td>
+                                 <td>{{ item.qty }}</td>
+                                 <td>{{ "%.2f"|format(item.price) }}</td>
+                                 <td>{{ "%.2f"|format(item.total) }}</td>
+                                 {# Remove Button Placeholder - Requires route/logic #}
+                                 <td class="no-print">
+                                     {# <form method="POST" action="{{ url_for('remove_item', customer_id=customer.id, line_item_id=loop.index0) }}"><button type="submit">X</button></form> #}
+                                 </td>
+                             </tr>
+                             {% endfor %}
+                         </tbody>
+                         <tfoot>
+                             <tr>
+                                 <td colspan="5" style="text-align: left;">الإجمالي الكلي للقائمة:</td>
+                                 <td>{{ "%.2f"|format(grand_total) }}</td>
+                                 <td class="no-print"></td> {# Empty cell #}
+                             </tr>
+                         </tfoot>
+                     </table>
+                     {% else %}
+                     <p>القائمة فارغة حالياً.</p>
+                     {% endif %}
+                 </div> {# End printable-area #}
+            </div> {# End current-list #}
+        </div> {# End container #}
+
+        {# --- Action Buttons for the List --- #}
+        <div class="list-actions no-print">
+             <button type="button" onclick="window.print();" class="print-button" {% if not current_list %}disabled{% endif %}>طباعة القائمة</button>
+
+            <form method="POST" action="{{ url_for('clear_customer_list', customer_id=customer.id) }}" onsubmit="return confirm('هل أنت متأكد أنك تريد مسح هذه القائمة؟');" style="display: inline;">
+                 <button type="submit" class="clear-button" {% if not current_list %}disabled{% endif %}>مسح القائمة</button>
+            </form>
+
+            <form method="POST" action="{{ url_for('finalize_customer_list', customer_id=customer.id) }}" onsubmit="return confirm('هل أنت متأكد أنك تريد إتمام البيع لهذه القائمة؟ سيتم تحديث كميات المخزون.');" style="display: inline;">
+                 <button type="submit" class="finalize-button" {% if not current_list %}disabled{% endif %}>إتمام البيع وحفظ المعاملات</button>
+            </form>
+        </div>
+
+    </div> {# End no-print wrapper #}
+
+</body>
+</html>
